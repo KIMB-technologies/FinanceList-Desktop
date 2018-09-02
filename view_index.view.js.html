@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: view/index.view.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: view/index.view.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**************************************************************************************************
+ * This file is responsible for the view on the overview page.
+**************************************************************************************************/
+
+/**
+ * This function displays the current surplus for each budget. This means,
+ * it will display the difference between all earnings from the current month
+ * and all spendings from the current month.
+ */
+function displayBalances() {
+    // Reset previous content.
+    $( "#currentBalances" ).html( "" );
+    // Get all budgets to iterate over them.
+    var currentBudgets = readMainStorage( "budgets" );
+    // Display the monthly surplus for every budget.
+    for ( var i = 0; i &lt; currentBudgets.length; i++ ) {
+        // Set the name of the budget as a heading.
+        $( "#currentBalances" ).append( "&lt;h5>&lt;i class=\"fas fa-angle-double-right w3-text-deep-purple\">&lt;/i>" + " " + currentBudgets[i][0] + " &lt;/h5>" );
+        // Find out the sum of earnings and spendings in this month, so we can calculate the surplus.
+        var quest = { connector:'or', params:[['budget', currentBudgets[i][0]]] };
+        var dataObj = getData( getCurrentFileName(), quest );
+        // Add all earnings and spendings from this month.
+        var totalEarningsThisMonth = 0, totalSpendingsThisMonth = 0;
+        // Make sure, that data exists. Otherwise we will stay at a surplus of zero.
+        if ( dataObj !== undefined ) {
+            // Now, add up all the amounts for earnings and spendings each.
+            for ( var j = 0; j &lt; dataObj.length; j++ ) {
+                // Earning? Increase totalEarningsThisMonth.
+                if ( dataObj[j].type === "earning" ) {
+                    totalEarningsThisMonth = Math.round( (totalEarningsThisMonth + dataObj[j].amount) * 1e2 ) / 1e2;
+                }
+                // Spending? Increase totalSpendingsThisMonth.
+                else if ( dataObj[j].type === "spending" ) {
+                    totalSpendingsThisMonth = Math.round( (totalSpendingsThisMonth + dataObj[j].amount) * 1e2 ) / 1e2;
+                }
+            }
+        }
+        // Now, find out if the difference between earnings and spendings is
+        // either positive, negative or neutral (zero).
+        var percentage = 100;
+        var color;
+        // Positive balance for this month:
+        if ( totalEarningsThisMonth - totalSpendingsThisMonth > 0 ) {
+            // Calculate the ratio of how much money is left from this months earnings and use the color green.
+            if ( totalEarningsThisMonth > 0 &amp;&amp; totalSpendingsThisMonth !== 0 ) percentage = ((totalEarningsThisMonth - totalSpendingsThisMonth) / totalEarningsThisMonth) * 100;
+            color = "green";
+        }
+        // Balance negative: Red color, percentage still at 100 (so the complete bar is red).
+        else if ( totalEarningsThisMonth - totalSpendingsThisMonth &lt; 0 ) {
+            color = "red";
+        }
+        // Balance is exactly zero for this month: Gray color and percentage still at 100:
+        else {
+            color = "gray";
+        }
+        // We want to display $2.50 instead of $2.50000000002 (this may happen since we use floating point numbers),
+        // so we round the balance.
+        var balance = (Math.round( (totalEarningsThisMonth - totalSpendingsThisMonth) * 1e2 ) / 1e2).toString();
+        // We want to display every balance with two decimal places (if there is a comma). Example: Display $2.50 instead of $2.5
+        // Does a comma exist?
+        if ( (totalEarningsThisMonth - totalSpendingsThisMonth).toString().indexOf( "." ) !== -1 ) {
+            // If so, we check if there are already two decimal digits. If not, we add a zero.
+            if ( (totalEarningsThisMonth - totalSpendingsThisMonth).toString().split( "." )[1].length &lt; 2 ) balance += "0";
+        }
+        // Now we are ready to display a progress bar which contains the difference.
+        $( "#currentBalances" ).append( "&lt;p>&lt;/p>&lt;div class=\"w3-grey\">&lt;div class=\"w3-container w3-center w3-padding w3-" + color + "\" style=\"width:" + percentage + "%;\">" + balance + getCurrencySign() + "&lt;/div>&lt;/div>" );
+    }
+}
+
+/**
+ * This function displays the recent spendings and earnings, if they exist.
+ * @param {String} type The type of transactions we want to display (earning/spending)
+ */
+function displayRecentTransactions( type ) {
+    // Get recent data.
+    var data = getRecentTransactions( type );
+    // Make sure that some data exists.
+    if ( data.length > 0 ) {
+        // Get the correct limit, in case the limits are different.
+        var limit = (type === "earning" ? numberOfRecentEarnings : numberOfRecentSpendings);
+        // We will append the HTML content to this string.
+        var recentTransactionsTable = "&lt;table class=\"w3-table-all w3-striped w3-white\">";
+        // Now, we just need to display the data. Remember that new data is at the end, so
+        // we need to loop backwards.
+        for ( var i = data.length - 1; i >= 0; i-- ) {
+            // Sometimes we want to add a single zero ($2.5 => $2.50) for a more beautiful display style.
+            var amount = data[i].amount;
+            // Amount has a comma?
+            if ( data[i].amount.toString().indexOf( "." ) !== -1 ) {
+                // If there are less than two decimal digits, add a zero at the end.
+                if ( data[i].amount.toString().split( "." )[1].length &lt; 2 ) amount += "0";
+            }
+            recentTransactionsTable += "&lt;tr>&lt;td>&lt;i class=\"far fa-money-bill-alt w3-text-green w3-large\">&lt;/i>" + " " + data[i].name + " &lt;/td>" +
+                                       "&lt;td>&lt;i>" + amount + getCurrencySign() + "&lt;/i>&lt;/td>" +
+                                       "&lt;td>&lt;i>" + dateToString( data[i].date ) + "&lt;/i>&lt;/td>&lt;/tr>";
+            // Display only limit many items (defined in index.controller.js).
+            if ( data.length - limit === i ) break;
+        }
+        // Display the table with recent transactions.
+        $( "#" + type + "Recent" ).html( "&lt;h3>&lt;i class=\"fa fa-arrow-right w3-text-green w3-large\">&lt;/i> " + getRecentTransactionsHeading( type ) + " &lt;/h3>" + recentTransactionsTable + "&lt;/table>" );
+    }
+    // Display a message that no data exists yet.
+    else {
+        $( "#" + type + "Recent" ).html( "&lt;h3>&lt;i class=\"fa fa-arrow-right w3-text-green w3-large\">&lt;/i> " + getRecentTransactionsHeading( type ) + " &lt;/h3>&lt;i>" + getRecentTransactionsMissingDataMessage( type ) + "&lt;/i>" );
+    }
+}
+
+/**
+ * This function displays a chart which visualizes all time transactions.
+ * @param {String} type The type of transactions we want to visualize (earning/spending)
+ */
+function displayChart( type ) {
+    // Reset the canvas in case no data existed before (then the HTML content was overwritten).
+    $( "#" + type + "ChartDiv" ).html( "&lt;canvas id=\"" + type + "\" width=\"8000\" height=\"2500\">&lt;/canvas>" );
+    // Get a reference to the canvas in which the chart should be.
+    var transactionChart = $( "#" + type )[0];
+    // Get all budgets.
+    var allTimeTransactions = (type === "earning" ? readMainStorage( "allTimeEarnings" ) : readMainStorage( "allTimeSpendings" ));
+    // Declare some variables to store the values in them.
+    var labels = [], dataset = [];
+    // We will declare a variable to make sure there is at least one earning/spending.
+    // In addition to that, this will contain the sum of all spendings/earnings.
+    var checksum = 0;
+    // Iterate over them to get the all time spendings.
+    for ( var i = 0; i &lt; allTimeTransactions.length; i++ ) {
+        // Get the name of every budget.
+        labels.push( allTimeTransactions[i][0] );
+        // Get the balance of
+        dataset.push( allTimeTransactions[i][1] );
+        // Add the amount to sum up all transactions.
+        checksum = (Math.round( (checksum + allTimeTransactions[i][1]) * 1e2 ) / 1e2)
+    }
+    // Now check if there exists at least one earning/spending.
+    if ( checksum > 0 ) {
+        // Create the chart. The colors are declared as a constant in controller.js.
+        createChart( transactionChart, labels, dataset, colors, colors, readPreference( "chartType" ) );
+        // Display the amount correctly.
+        if ( checksum.toString().indexOf( "." ) !== -1 ) {
+            if ( checksum.toString().split( "." )[1].length &lt; 2 ) checksum += "0";
+        }
+        // Display the sum of all time earnings/spendings.
+        $( "#" + type + "ChartDiv" ).append( "&lt;br>&lt;center>" + getAllTimeTransactionsText( type ) + ": " + checksum + getCurrencySign() + "&lt;/center>" );
+    }
+    // Otherwise display a message that there is no data yet.
+    else {
+        $( "#" + type + "ChartDiv" ).html( "&lt;i>" + getAllTimeTransactionsMissingDataMessage( type ) + "&lt;/i>" );
+    }
+}
+
+/**
+ * This function updates the view anytime changes are made.
+ */
+function updateView() {
+    // Display current balances.
+    displayBalances();
+    // Display a table of recent spendings.
+    displayRecentTransactions( "spending" );
+    // Display all time spendings.
+    displayChart( "spending" );
+    // Display a table of recent earnings.
+    displayRecentTransactions( "earning" );
+    // Display all time earnings.
+    displayChart( "earning" );
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#activateDateRangePicker">activateDateRangePicker</a></li><li><a href="global.html#addBudget">addBudget</a></li><li><a href="global.html#addEarning">addEarning</a></li><li><a href="global.html#addRecurringTransaction">addRecurringTransaction</a></li><li><a href="global.html#addSpending">addSpending</a></li><li><a href="global.html#addTransaction">addTransaction</a></li><li><a href="global.html#addTransfer">addTransfer</a></li><li><a href="global.html#checkAmountInput">checkAmountInput</a></li><li><a href="global.html#createChart">createChart</a></li><li><a href="global.html#createDialog">createDialog</a></li><li><a href="global.html#createPath">createPath</a></li><li><a href="global.html#dateToString">dateToString</a></li><li><a href="global.html#deleteBudget">deleteBudget</a></li><li><a href="global.html#deleteRecurringTransaction">deleteRecurringTransaction</a></li><li><a href="global.html#displayBalances">displayBalances</a></li><li><a href="global.html#displayBudgets">displayBudgets</a></li><li><a href="global.html#displayChart">displayChart</a></li><li><a href="global.html#displayChartType">displayChartType</a></li><li><a href="global.html#displayContent">displayContent</a></li><li><a href="global.html#displayContentControls">displayContentControls</a></li><li><a href="global.html#displayRecentTransactions">displayRecentTransactions</a></li><li><a href="global.html#displayRecurringTransactions">displayRecurringTransactions</a></li><li><a href="global.html#executeRecurringTransactions">executeRecurringTransactions</a></li><li><a href="global.html#executeTransfer">executeTransfer</a></li><li><a href="global.html#getAddBudgetDialogText">getAddBudgetDialogText</a></li><li><a href="global.html#getAddBudgetDialogTitle">getAddBudgetDialogTitle</a></li><li><a href="global.html#getAllTimeTransactionsMissingDataMessage">getAllTimeTransactionsMissingDataMessage</a></li><li><a href="global.html#getAllTimeTransactionsText">getAllTimeTransactionsText</a></li><li><a href="global.html#getCancelButtonText">getCancelButtonText</a></li><li><a href="global.html#getConfirmButtonText">getConfirmButtonText</a></li><li><a href="global.html#getCurrencySign">getCurrencySign</a></li><li><a href="global.html#getCurrentBudgetsHeadings">getCurrentBudgetsHeadings</a></li><li><a href="global.html#getCurrentDate">getCurrentDate</a></li><li><a href="global.html#getCurrentFileName">getCurrentFileName</a></li><li><a href="global.html#getData">getData</a></li><li><a href="global.html#getDeleteBudgetDialogText">getDeleteBudgetDialogText</a></li><li><a href="global.html#getDeleteBudgetDialogTitle">getDeleteBudgetDialogTitle</a></li><li><a href="global.html#getDisplayTypeTextElements">getDisplayTypeTextElements</a></li><li><a href="global.html#getIntervalOptionsTextElements">getIntervalOptionsTextElements</a></li><li><a href="global.html#getInvalidInputMessage">getInvalidInputMessage</a></li><li><a href="global.html#getJSONFiles">getJSONFiles</a></li><li><a href="global.html#getLanguage">getLanguage</a></li><li><a href="global.html#getMainContentFilterText">getMainContentFilterText</a></li><li><a href="global.html#getMainContentStartButtonText">getMainContentStartButtonText</a></li><li><a href="global.html#getMainContentTableHeadings">getMainContentTableHeadings</a></li><li><a href="global.html#getMissingTransactionsMessage">getMissingTransactionsMessage</a></li><li><a href="global.html#getNewDate">getNewDate</a></li><li><a href="global.html#getRangeDatePickerApplyButtonText">getRangeDatePickerApplyButtonText</a></li><li><a href="global.html#getRangeDatePickerCancelButtonText">getRangeDatePickerCancelButtonText</a></li><li><a href="global.html#getRangeDatePickerClearButtonText">getRangeDatePickerClearButtonText</a></li><li><a href="global.html#getRangeDatePickerPresetRangesTextElements">getRangeDatePickerPresetRangesTextElements</a></li><li><a href="global.html#getRecentTransactions">getRecentTransactions</a></li><li><a href="global.html#getRecentTransactionsHeading">getRecentTransactionsHeading</a></li><li><a href="global.html#getRecentTransactionsMissingDataMessage">getRecentTransactionsMissingDataMessage</a></li><li><a href="global.html#getRecurringTransactionsContent">getRecurringTransactionsContent</a></li><li><a href="global.html#getRecurringTransactionsHeadings">getRecurringTransactionsHeadings</a></li><li><a href="global.html#getRenameBudgetDialogText">getRenameBudgetDialogText</a></li><li><a href="global.html#getRenameBudgetDialogTitle">getRenameBudgetDialogTitle</a></li><li><a href="global.html#getSetAllocationDialogTextElements">getSetAllocationDialogTextElements</a></li><li><a href="global.html#getSetAllocationDialogTitle">getSetAllocationDialogTitle</a></li><li><a href="global.html#getTransactionDialogTextElements">getTransactionDialogTextElements</a></li><li><a href="global.html#getTransactionDialogTitle">getTransactionDialogTitle</a></li><li><a href="global.html#getTransferDialogTextElements">getTransferDialogTextElements</a></li><li><a href="global.html#getTransferDialogTitle">getTransferDialogTitle</a></li><li><a href="global.html#getType">getType</a></li><li><a href="global.html#initStorage">initStorage</a></li><li><a href="global.html#loadPage">loadPage</a></li><li><a href="global.html#moveFiles">moveFiles</a></li><li><a href="global.html#readMainStorage">readMainStorage</a></li><li><a href="global.html#readPreference">readPreference</a></li><li><a href="global.html#renameBudget">renameBudget</a></li><li><a href="global.html#replaceData">replaceData</a></li><li><a href="global.html#setAllocation">setAllocation</a></li><li><a href="global.html#setAllocationOn">setAllocationOn</a></li><li><a href="global.html#setChartType">setChartType</a></li><li><a href="global.html#setCurrency">setCurrency</a></li><li><a href="global.html#setLanguage">setLanguage</a></li><li><a href="global.html#setPath">setPath</a></li><li><a href="global.html#setWindowMode">setWindowMode</a></li><li><a href="global.html#setWindowSize">setWindowSize</a></li><li><a href="global.html#showDatepicker">showDatepicker</a></li><li><a href="global.html#sortData">sortData</a></li><li><a href="global.html#storeData">storeData</a></li><li><a href="global.html#storePreference">storePreference</a></li><li><a href="global.html#updateContent">updateContent</a></li><li><a href="global.html#updatePaths">updatePaths</a></li><li><a href="global.html#updateTransactionDialog">updateTransactionDialog</a></li><li><a href="global.html#updateView">updateView</a></li><li><a href="global.html#writeMainStorage">writeMainStorage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Sep 02 2018 13:46:47 GMT+0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

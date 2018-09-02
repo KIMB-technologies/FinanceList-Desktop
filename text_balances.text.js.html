@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: text/balances.text.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: text/balances.text.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**************************************************************************************************
+ * This file contains all the text elements for the balances page.
+ * Note: default cases are not needed because getLanguage() will always return a valid string.
+**************************************************************************************************/
+
+/**
+ * This function returns text for the "Confirm" button in the correct language.
+ * @return {String} The text for the "Confirm" button in every dialog.
+ */
+function getConfirmButtonText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Confirm";
+        case "de":
+            return "Best\u00e4tigen";
+    }
+}
+
+/**
+ * This function returns text for the "Cancel" button in the correct language.
+ * @return {String} The text for the "Cancel" button in every dialog.
+ */
+function getCancelButtonText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Cancel";
+        case "de":
+            return "Abbrechen";
+    }
+}
+
+/**
+ * This function returns text for current budgets headings in the correct language.
+ * @return {String[]} The headings for the current budgets section.
+ */
+function getCurrentBudgetsHeadings() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Budget", "Balance", "Rename/Delete", "Allocation ratio"];
+        case "de":
+            return ["Konto", "Kontostand", "Umbenennen/L&amp;ouml;schen", "Anteil bei Aufteilung"];
+    }
+}
+
+/**
+ * This function returns text for recurring transactions headings in the correct language.
+ * @return {String[]} The headings for the recurring transactions section.
+ */
+function getRecurringTransactionsHeadings() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Name", "Amount", "Type", "Budget", "Category", "Next execution", "Interval", "End date", "Delete"];
+        case "de":
+            return ["Name", "Summe", "Art", "Konto", "Kategorie", "N&amp;auml;chste Ausf&amp;uuml;hrung", "Intervall", "Enddatum", "L&amp;ouml;schen"];
+    }
+}
+
+/**
+ * This function returns text for recurring transactions content in the correct language.
+ * @return {String[]} The content for the recurring transactions section.
+ */
+function getRecurringTransactionsContent() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["earning", "spending", "days", "No recurring transactions available."];
+        case "de":
+            return ["Einnahme", "Ausgabe", "Tage", "Es sind keine wiederkehrenden Transaktionen vorhanden."];
+    }
+}
+
+/**
+ * This function returns the title of the transaction dialog in the correct language.
+ * @return {String} The title of the transaction dialog.
+ */
+function getTransactionDialogTitle() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Add transaction";
+        case "de":
+            return "Eintrag hinzuf\u00fcgen";
+    }
+}
+
+/**
+ * This function returns the text elements of the transaction dialog in the correct language.
+ * @return {String[]} The text elements of the transaction dialog.
+ */
+function getTransactionDialogTextElements() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Here you can add new earnings or new spendings.", "Earning", "Spending", "Name", "Amount", "Category", "(optionally)", "Date", "Choose budget", "Allocate automatically", "Budget", "Automate", "End date", "never"];
+        case "de":
+            return ["Hier k&amp;ouml;nnen Sie neue Einnahmen oder Ausgaben hinzuf&amp;uuml;gen.", "Einnahme", "Ausgabe", "Name", "Betrag", "Kategorie", "(optional)", "Datum", "Konto w&amp;auml;hlen", "Automatisch verteilen", "Konto", "Automatisieren", "Enddatum", "nie"];
+    }
+}
+
+/**
+ * This function returns the text elements of the interval options in the correct language.
+ * Note: THe elements need to be in this order. Changing the order will result in unwanted behaviour.
+ * @return {String[]} The text elements of the interval options.
+ */
+function getIntervalOptionsTextElements() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["weekly", "every 4 weeks", "monthly", "bimonthly", "quarterly", "biannual", "annual"];
+        case "de":
+            return ["w&amp;ouml;chentlich", "alle 4 Wochen", "monatlich", "zweimonatlich", "viertelj&amp;auml;hrlich", "halbj&amp;auml;hrlich", "j&amp;auml;hrlich"];
+    }
+}
+
+/**
+ * This function returns the title of the add budget dialog in the correct language.
+ * @return {String} The title of the add budget dialog.
+ */
+function getAddBudgetDialogTitle() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Add budget";
+        case "de":
+            return "Konto hinzuf\u00fcgen";
+    }
+}
+
+/**
+ * This function returns the text of the add budget dialog in the correct language.
+ * @return {String} The text of the add budget dialog.
+ */
+function getAddBudgetDialogText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Type in the name of the new budget.";
+        case "de":
+            return "Geben Sie einen Namen f&amp;uuml;r das neue Konto ein.";
+    }
+}
+
+/**
+ * This function returns the title of the delete budget dialog in the correct language.
+ * @return {String} The title of the delete budget dialog.
+ */
+function getDeleteBudgetDialogTitle() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Delete budget";
+        case "de":
+            return "Konto l\u00f6schen";
+    }
+}
+
+/**
+ * This function returns the text of the delete budget dialog in the correct language.
+ * @return {String} The text of the delete budget dialog.
+ */
+function getDeleteBudgetDialogText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Are you sure you want to delete this budget? &lt;br> All the data will be lost.";
+        case "de":
+            return "Wollen Sie dieses Konto wirklich l&amp;ouml;schen? &lt;br> Dann gehen alle gespeicherten Daten verloren.";
+    }
+}
+
+/**
+ * This function returns the title of the rename budget dialog in the correct language.
+ * @return {String} The title of the rename budget dialog.
+ */
+function getRenameBudgetDialogTitle() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Rename budget";
+        case "de":
+            return "Konto umbenennen";
+    }
+}
+
+/**
+ * This function returns the text of the rename budget dialog in the correct language.
+ * @return {String} The text of the rename budget dialog.
+ */
+function getRenameBudgetDialogText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Type in a new name for this budget.";
+        case "de":
+            return "Geben Sie einen neuen Namen f&amp;uuml;r dieses Konto ein.";
+    }
+}
+
+/**
+ * This function returns the title of the set allocation dialog in the correct language.
+ * @return {String} The title of the set allocation dialog.
+ */
+function getSetAllocationDialogTitle() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Automated allocation";
+        case "de":
+            return "Automatische Aufteilung";
+    }
+}
+
+/**
+ * This function returns the text elements of the set allocation dialog in the correct language.
+ * @return {String[]} The text elements of the set allocation dialog.
+ */
+function getSetAllocationDialogTextElements() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Here you can select how your earnings should be distributed.", "Activate automated allocation", "Distribute all earnings automatically to your budgets.", "Budget", "Percentage"];
+        case "de":
+            return ["Hier k&amp;ouml;nnen Sie ausw&amp;auml;hlen, wie Ihre Einnahmen verteilt werden sollen.", "Automatische Verteilung aktivieren", "Verteilt alle Einnahmen automatisch auf mehrere Konten.", "Konto", "Anteil"];
+    }
+}
+
+/**
+ * This function returns the text for the display type (table/graph).
+ * @return {String[]} The text for the display type (table/graph).
+ */
+function getDisplayTypeTextElements() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Graph", "Table"];
+        case "de":
+            return ["Graph", "Tabelle"];
+    }
+}
+
+/**
+ * This function returns the headings for the detail overview table.
+ * @return {String[]} The headings for the detail overview table.
+ */
+function getMainContentTableHeadings() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Date", "Name", "Amount", "Category", "Budget", "Type"];
+        case "de":
+            return ["Datum", "Name", "Summe", "Kategorie", "Konto", "Art"];
+    }
+}
+
+/**
+ * This function returns the text for the filters in the main content.
+ * @return {String[]} The text for the filters in the main content.
+ */
+function getMainContentFilterText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["All budgets", "All types", "Earnings", "Spendings", "All time", "to", "All transactions", "All categories"];
+        case "de":
+            return ["Alle Konten", "Alle Arten", "Einnahmen", "Ausgaben", "Gesamter Zeitraum", "bis", "Alle Transaktionen", "Alle Kategorien"];
+    }
+}
+
+/**
+ * This function returns the text for the start button in the main content.
+ * @return {String[]} The text for the start button in the main content.
+ */
+function getMainContentStartButtonText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Update";
+        case "de":
+            return "Aktualisieren";
+    }
+}
+
+/**
+ * This function returns the type in the correct language (it "translates" the type).
+ * @param {String} type The type (in English).
+ * @return {String} The type in the currently selected language.
+ */
+function getType( type ) {
+    switch ( getLanguage() ) {
+        case "en":
+            return type;
+        case "de":
+            return (type === "earning" ? "Einnahme" : "Ausgabe" );
+    }
+}
+
+/**
+ * This function returns the text for the apply button in the rangedatepicker.
+ * @return {String} The text of the apply button in the rangedatepicker.
+ */
+function getRangeDatePickerApplyButtonText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Apply";
+        case "de":
+            return "Anwenden";
+    }
+}
+
+/**
+ * This function returns the text for the clear button in the rangedatepicker.
+ * @return {String} The text of the clear button in the rangedatepicker.
+ */
+function getRangeDatePickerClearButtonText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Clear";
+        case "de":
+            return "Zur\u00fccksetzen";
+    }
+}
+
+/**
+ * This function returns the text for the cancel button in the rangedatepicker.
+ * @return {String} The text of the cancel button in the rangedatepicker.
+ */
+function getRangeDatePickerCancelButtonText() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Cancel";
+        case "de":
+            return "Abbrechen";
+    }
+}
+
+/**
+ * This function returns the text elements for the preset ranges in the rangedatepicker.
+ * @return {String[]} The text elements of the preset ranges in the rangedatepicker.
+ */
+function getRangeDatePickerPresetRangesTextElements() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Today", "Yesterday", "Last 7 days", "Last week (Mo-Su)", "Current month", "Previous month", "Current Year", "Last year", "All time"];
+        case "de":
+            return ["Heute", "Gestern", "Letzte 7 Tage", "Letzte Woche (Mo-So)", "Aktueller Monat", "Letzter Monat", "Aktuelles Jahr", "Letztes Jahr", "Gesamter Zeitraum"];
+    }
+}
+
+/**
+ * This function returns the message for invalid inputs.
+ * @return {String} The message for invalid inputs.
+ */
+function getInvalidInputMessage() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Invalid input!";
+        case "de":
+            return "Ung&amp;uuml;ltige Eingabe!";
+    }
+}
+
+/**
+ * This function returns the message in case no transaction was found.
+ * @return {String} The message in case no transaction was found.
+ */
+function getMissingTransactionsMessage() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "No transactions found!";
+        case "de":
+            return "Es wurden keine Transaktionen gefunden!";
+    }
+}
+
+/**
+ * This function returns the text elements for the transfer dialog.
+ * @return {String[]} The text elements for the transfer dialog.
+ */
+function getTransferDialogTextElements() {
+    switch ( getLanguage() ) {
+        case "en":
+            return ["Here you can transfer money between your budgets.", "From", "To", "Amount"];
+        case "de":
+            return ["Hier k&amp;ouml;nnen Sie Geld zwischen Ihren Konten &amp;uuml;bertragen.", "Von", "Nach", "Betrag"];
+    }
+}
+
+/**
+ * This function returns the title for the transfer dialog.
+ * @return {String} The title for the transfer dialog.
+ */
+function getTransferDialogTitle() {
+    switch ( getLanguage() ) {
+        case "en":
+            return "Transfer money";
+        case "de":
+            return "Geld \u00fcbertragen";
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#activateDateRangePicker">activateDateRangePicker</a></li><li><a href="global.html#addBudget">addBudget</a></li><li><a href="global.html#addEarning">addEarning</a></li><li><a href="global.html#addRecurringTransaction">addRecurringTransaction</a></li><li><a href="global.html#addSpending">addSpending</a></li><li><a href="global.html#addTransaction">addTransaction</a></li><li><a href="global.html#addTransfer">addTransfer</a></li><li><a href="global.html#checkAmountInput">checkAmountInput</a></li><li><a href="global.html#createChart">createChart</a></li><li><a href="global.html#createDialog">createDialog</a></li><li><a href="global.html#createPath">createPath</a></li><li><a href="global.html#dateToString">dateToString</a></li><li><a href="global.html#deleteBudget">deleteBudget</a></li><li><a href="global.html#deleteRecurringTransaction">deleteRecurringTransaction</a></li><li><a href="global.html#displayBalances">displayBalances</a></li><li><a href="global.html#displayBudgets">displayBudgets</a></li><li><a href="global.html#displayChart">displayChart</a></li><li><a href="global.html#displayChartType">displayChartType</a></li><li><a href="global.html#displayContent">displayContent</a></li><li><a href="global.html#displayContentControls">displayContentControls</a></li><li><a href="global.html#displayRecentTransactions">displayRecentTransactions</a></li><li><a href="global.html#displayRecurringTransactions">displayRecurringTransactions</a></li><li><a href="global.html#executeRecurringTransactions">executeRecurringTransactions</a></li><li><a href="global.html#executeTransfer">executeTransfer</a></li><li><a href="global.html#getAddBudgetDialogText">getAddBudgetDialogText</a></li><li><a href="global.html#getAddBudgetDialogTitle">getAddBudgetDialogTitle</a></li><li><a href="global.html#getAllTimeTransactionsMissingDataMessage">getAllTimeTransactionsMissingDataMessage</a></li><li><a href="global.html#getAllTimeTransactionsText">getAllTimeTransactionsText</a></li><li><a href="global.html#getCancelButtonText">getCancelButtonText</a></li><li><a href="global.html#getConfirmButtonText">getConfirmButtonText</a></li><li><a href="global.html#getCurrencySign">getCurrencySign</a></li><li><a href="global.html#getCurrentBudgetsHeadings">getCurrentBudgetsHeadings</a></li><li><a href="global.html#getCurrentDate">getCurrentDate</a></li><li><a href="global.html#getCurrentFileName">getCurrentFileName</a></li><li><a href="global.html#getData">getData</a></li><li><a href="global.html#getDeleteBudgetDialogText">getDeleteBudgetDialogText</a></li><li><a href="global.html#getDeleteBudgetDialogTitle">getDeleteBudgetDialogTitle</a></li><li><a href="global.html#getDisplayTypeTextElements">getDisplayTypeTextElements</a></li><li><a href="global.html#getIntervalOptionsTextElements">getIntervalOptionsTextElements</a></li><li><a href="global.html#getInvalidInputMessage">getInvalidInputMessage</a></li><li><a href="global.html#getJSONFiles">getJSONFiles</a></li><li><a href="global.html#getLanguage">getLanguage</a></li><li><a href="global.html#getMainContentFilterText">getMainContentFilterText</a></li><li><a href="global.html#getMainContentStartButtonText">getMainContentStartButtonText</a></li><li><a href="global.html#getMainContentTableHeadings">getMainContentTableHeadings</a></li><li><a href="global.html#getMissingTransactionsMessage">getMissingTransactionsMessage</a></li><li><a href="global.html#getNewDate">getNewDate</a></li><li><a href="global.html#getRangeDatePickerApplyButtonText">getRangeDatePickerApplyButtonText</a></li><li><a href="global.html#getRangeDatePickerCancelButtonText">getRangeDatePickerCancelButtonText</a></li><li><a href="global.html#getRangeDatePickerClearButtonText">getRangeDatePickerClearButtonText</a></li><li><a href="global.html#getRangeDatePickerPresetRangesTextElements">getRangeDatePickerPresetRangesTextElements</a></li><li><a href="global.html#getRecentTransactions">getRecentTransactions</a></li><li><a href="global.html#getRecentTransactionsHeading">getRecentTransactionsHeading</a></li><li><a href="global.html#getRecentTransactionsMissingDataMessage">getRecentTransactionsMissingDataMessage</a></li><li><a href="global.html#getRecurringTransactionsContent">getRecurringTransactionsContent</a></li><li><a href="global.html#getRecurringTransactionsHeadings">getRecurringTransactionsHeadings</a></li><li><a href="global.html#getRenameBudgetDialogText">getRenameBudgetDialogText</a></li><li><a href="global.html#getRenameBudgetDialogTitle">getRenameBudgetDialogTitle</a></li><li><a href="global.html#getSetAllocationDialogTextElements">getSetAllocationDialogTextElements</a></li><li><a href="global.html#getSetAllocationDialogTitle">getSetAllocationDialogTitle</a></li><li><a href="global.html#getTransactionDialogTextElements">getTransactionDialogTextElements</a></li><li><a href="global.html#getTransactionDialogTitle">getTransactionDialogTitle</a></li><li><a href="global.html#getTransferDialogTextElements">getTransferDialogTextElements</a></li><li><a href="global.html#getTransferDialogTitle">getTransferDialogTitle</a></li><li><a href="global.html#getType">getType</a></li><li><a href="global.html#initStorage">initStorage</a></li><li><a href="global.html#loadPage">loadPage</a></li><li><a href="global.html#moveFiles">moveFiles</a></li><li><a href="global.html#readMainStorage">readMainStorage</a></li><li><a href="global.html#readPreference">readPreference</a></li><li><a href="global.html#renameBudget">renameBudget</a></li><li><a href="global.html#replaceData">replaceData</a></li><li><a href="global.html#setAllocation">setAllocation</a></li><li><a href="global.html#setAllocationOn">setAllocationOn</a></li><li><a href="global.html#setChartType">setChartType</a></li><li><a href="global.html#setCurrency">setCurrency</a></li><li><a href="global.html#setLanguage">setLanguage</a></li><li><a href="global.html#setPath">setPath</a></li><li><a href="global.html#setWindowMode">setWindowMode</a></li><li><a href="global.html#setWindowSize">setWindowSize</a></li><li><a href="global.html#showDatepicker">showDatepicker</a></li><li><a href="global.html#sortData">sortData</a></li><li><a href="global.html#storeData">storeData</a></li><li><a href="global.html#storePreference">storePreference</a></li><li><a href="global.html#updateContent">updateContent</a></li><li><a href="global.html#updatePaths">updatePaths</a></li><li><a href="global.html#updateTransactionDialog">updateTransactionDialog</a></li><li><a href="global.html#updateView">updateView</a></li><li><a href="global.html#writeMainStorage">writeMainStorage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Sep 02 2018 13:46:47 GMT+0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

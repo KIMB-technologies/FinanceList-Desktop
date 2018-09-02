@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: view/balances.view.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: view/balances.view.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**************************************************************************************************
+ * This file is responsible for the view on the balances page.
+**************************************************************************************************/
+
+/**
+ * This function creates dialogues for adding, renaming and deleting budgets.
+ * @param {String} title The title of the dialog.
+ * @param {String} text The content of the dialog.
+ * @param {function} okFunction A function to be executed when the OK button was pressed.
+ */
+function createDialog( title, text, okFunction ) {
+    // Set the content of the dialog.
+    $( "#dialogDiv" ).html( text );
+    // Create a new dialog.
+    $( "#dialogDiv" ).dialog({
+    	resizable: false,
+    	height: "auto",
+    	width: "auto",
+    	minWidth: 200,
+    	minHeight: 150,
+    	modal: true,
+    	title: title,
+        // Reset the text on close.
+    	close: function () {
+    		$( "#dialogDiv" ).html( "" );
+    	},
+    	buttons : [
+            {
+                text: getConfirmButtonText(),
+                click: okFunction
+		    },
+            {
+                text: getCancelButtonText(),
+                click: function() {
+                    $( this ).dialog( "close" );
+                }
+		    }
+        ]
+    });
+}
+
+/**
+ * This function displays all currently available budgets in a simple overview.
+ */
+function displayBudgets() {
+    // Reset previous content, set the table heading.
+    var content = "&lt;table class=\"w3-table-all w3-round w3-twothird\">" +
+                  "&lt;tr>&lt;td>" + getCurrentBudgetsHeadings()[0] + "&lt;/td>" +
+                  "&lt;td>" + getCurrentBudgetsHeadings()[1] + "&lt;/td>" +
+                  "&lt;td>" + getCurrentBudgetsHeadings()[2] + "&lt;/td>" +
+                  (readMainStorage( "allocationOn" ) ?
+                  "&lt;td>" + getCurrentBudgetsHeadings()[3] + "&lt;/td>&lt;/tr>" :
+                  "&lt;/tr>");
+    // Get all budgets to iterate over them.
+    var currentBudgets = readMainStorage( "budgets" );
+    // Iterate over all budgets to display them.
+    for ( var i = 0; i &lt; currentBudgets.length; i++ ) {
+        // Sometimes we want to add a single zero ($2.5 => $2.50).
+        var balance = currentBudgets[i][1];
+        // Balance contains a comma?
+        if ( currentBudgets[i][1].toString().indexOf( "." ) !== -1 ) {
+            // Only one decimal digit? Add a zero to the end.
+            if ( currentBudgets[i][1].toString().split( "." )[1].length &lt; 2 ) balance += "0";
+        }
+        // Display all budgets. The first one is a standard budget and can therefore not be deleted.
+        // Note that currentBudgets is an array of arrays (name of the budget and its current balance).
+        content += "&lt;tr>&lt;td>" + currentBudgets[i][0] + "&lt;/td>" +
+                   "&lt;td>" + balance + getCurrencySign() + "&lt;/td>" +
+                   "&lt;td>" + "&lt;span onclick=\"renameBudget('" + currentBudgets[i][0] + "');\" class=\"w3-button\">" +
+                   "&lt;i class=\"fas fa-edit\">&lt;/i>&lt;/span>";
+        // Every other budget (not default) can be deleted.
+        if ( i !== 0 ) {
+            content += "&lt;span onclick=\"deleteBudget('" + currentBudgets[i][0] + "');\" class=\"w3-button\">&lt;i class=\"fas fa-times w3-text-red\">&lt;/i>&lt;/span>&lt;/li>";
+        }
+        content += "&lt;/td>";
+        // Allocation enabled? Display the ratios.
+        // Note: Allocation has the same order as budgets, so we can use the same index.
+        if ( readMainStorage( "allocationOn" ) ) {
+            content += "&lt;td>" + readMainStorage( "allocation" )[i][1] + "&amp;percnt;&lt;/td>";
+        }
+        content += "&lt;/tr>";
+    }
+    content += "&lt;/table>&lt;br>";
+    // Display the content.
+    $( "#currentBudgets" ).html( content );
+}
+
+/**
+ * This function displays all currently recurring transactions.
+ */
+function displayRecurringTransactions() {
+    // Get all recurring transactions.
+    var recurringTransactions = readMainStorage( "recurring" );
+    // Recurring transactions existing?
+    if ( recurringTransactions.length > 0 ) {
+        // Reset previous content.
+        var content = "&lt;table class=\"w3-table-all w3-round w3-twothird\">&lt;tr>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[0] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[1] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[2] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[3] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[4] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[5] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[6] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[7] + "&lt;/td>" +
+                      "&lt;td>" + getRecurringTransactionsHeadings()[8] + "&lt;/td>" +
+                      "&lt;/tr>";
+        // Iterate over all recurring transactions to display them.
+        for ( var i = 0; i &lt; recurringTransactions.length; i++ ) {
+            // Sometimes we want to add a single zero (2.5 => 2.50) for a more beautiful display style.
+            var amount = recurringTransactions[i].amount;
+            if ( recurringTransactions[i].amount.toString().indexOf( "." ) !== -1 ) {
+                if ( recurringTransactions[i].amount.toString().split( "." )[1].length &lt; 2 ) amount += "0";
+            }
+            // Set the type in dependecy of the current language.
+            var type = ( recurringTransactions[i].type === "earning" ? getRecurringTransactionsContent()[0] : getRecurringTransactionsContent()[1] );
+            // Add all the data to our content.
+            content += "&lt;tr>&lt;td>" + recurringTransactions[i].name + "&lt;/td>" +
+                       "&lt;td>" + amount + getCurrencySign() + "&lt;/td>" +
+                       "&lt;td>" + type + "&lt;/td>" +
+                       "&lt;td>" + (recurringTransactions[i].allocationOn ? "&amp;mdash;" : recurringTransactions[i].budget) + "&lt;/td>" +
+                       // If a category exists, display it. Otherwise display "-".
+                       "&lt;td>" + (recurringTransactions[i].category.length > 0 ? recurringTransactions[i].category : "&amp;mdash;") + "&lt;/td>" +
+                       "&lt;td>" + dateToString( recurringTransactions[i].nextDate ) + "&lt;/td>" +
+                       "&lt;td>" + getIntervalOptionsTextElements()[recurringTransactions[i].interval] + "&lt;/td>" +
+                       "&lt;td>" + (recurringTransactions[i].endDate > 0 ? dateToString( recurringTransactions[i].endDate ) : "&amp;mdash;") + "&lt;/td>" +
+                       "&lt;td>&lt;span onclick=\"deleteRecurringTransaction('" + recurringTransactions[i].name + "')\" class=\"w3-button\">&lt;i class=\"fas fa-times w3-text-red\">&lt;/i>&lt;/span>&lt;/td>" +
+                       "&lt;/tr>";
+        }
+        content += "&lt;/table>&lt;br>";
+        // Set the new content.
+        $( "#recurringTransactions" ).html( content );
+    }
+    // No recurring transactions:
+    else {
+        $( "#recurringTransactions" ).html( "&lt;i>" + getRecurringTransactionsContent()[3] + "&lt;/i>" );
+    }
+}
+
+/**
+ * This function displays the controls for the main content. (All the paramters which
+ * can be chosen by the user to filter the data)
+ */
+function displayContentControls() {
+    // First, get all budgets to offer a selection between them.
+    var currentBudgets = readMainStorage( "budgets" );
+    // We will add all the content to this and then display it in the dialog.
+    var budgetOptions = "";
+    // Display an option for every available budget, so the user can select any budget.
+    for ( var i = 0; i &lt; currentBudgets.length; i++ ) {
+        budgetOptions += "&lt;option value=\"" + currentBudgets[i][0] + "\">" + currentBudgets[i][0] + "&lt;/option>";
+    }
+    // Set the content (and reset previous content).
+    $( "#mainContentControls" ).html(
+        // Display a selection for display types (graph/table).
+        "&lt;form class=\"w3-center\">" +
+            "&lt;input id=\"graph\" onclick=\"updateContent();\" type=\"radio\" name=\"type\" checked>" +
+            getDisplayTypeTextElements()[0] +
+            "&lt;input id=\"table\" onclick=\"updateContent();\" style=\"margin-left:15px;\" type=\"radio\" name=\"type\">" +
+            getDisplayTypeTextElements()[1] +
+        "&lt;/form>&lt;hr>" +
+        // Display filters for the user so they can choose which data they want to see.
+        "&lt;div>" +
+            "&lt;table align=\"center\">" +
+                "&lt;tr>" +
+                    "&lt;td>" +
+                        "&lt;select class=\"w3-select\" id=\"budgetSelect\">" +
+                            "&lt;option selected=\"selected\">" + getMainContentFilterText()[0] + "&lt;/option>" + budgetOptions +
+                        "&lt;/select>" +
+                    "&lt;/td>" +
+                    "&lt;td>" +
+                        "&lt;select class=\"w3-select\" id=\"typeSelect\">" +
+                            "&lt;option>" + getMainContentFilterText()[1] + "&lt;/option>" +
+                            "&lt;option>" + getMainContentFilterText()[2] + "&lt;/option>" +
+                            "&lt;option selected=\"selected\">" + getMainContentFilterText()[3] + "&lt;/option>" +
+                        "&lt;/select>" +
+                    "&lt;/td>" +
+                    "&lt;td>" +
+                        "&lt;input id=\"dateSelect\" class=\"w3-round-large w3-white\"  onclick=\"showDatepicker('3');\">" +
+                    "&lt;/td>" +
+                    "&lt;td>" +
+                        "&lt;input id=\"amountFrom\" type=\"text\" size=\"2\">" + getCurrencySign() + " " + getMainContentFilterText()[5] + " " +
+                        "&lt;input id=\"amountTo\" type=\"text\" size=\"2\">" + getCurrencySign() +
+                    "&lt;/td>" +
+                    "&lt;td>" +
+                        "&lt;input id=\"nameSelect\" type=\"text\" size=\"15\" placeholder=\"" + getMainContentFilterText()[6] + "\">" +
+                    "&lt;/td>" +
+                    "&lt;td>" +
+                        "&lt;input id=\"categorySelect\" type=\"text\" size=\"15\" placeholder=\"" + getMainContentFilterText()[7] + "\">" +
+                    "&lt;/td>" +
+                    "&lt;td>" +
+                        "&lt;button class=\"w3-button w3-white w3-round-xlarge\" onclick=\"updateContent();\">" + getMainContentStartButtonText() + "&lt;/button>" +
+                    "&lt;/td>" +
+                "&lt;/tr>" +
+            "&lt;/table>" +
+        "&lt;/div>" );
+    // Activate the datepicker.
+    activateDateRangePicker( "#dateSelect" );
+    // Autocomplete for user inputs.
+    $( "#nameSelect" ).autocomplete({
+      source: readMainStorage( "availableNames" )
+    });
+    $( "#categorySelect" ).autocomplete({
+      source: readMainStorage( "availableCategories" )
+    });
+}
+
+/**
+ * This function displays the details the user wishes to see.
+ * @param {String} displayType This indicates how the data will be displayed (table/graph).
+ * The following are filters for the data.
+ * @param {String} budget Indicates which budget should be displayed.
+ * @param {String} type Indictates which type of transactions should be displayed.
+ * @param {Object} startDate Indictates the start of the date range for transactions to be displayed.
+ * @param {Object} endDate Indictates the end of the date range for transactions to be displayed.
+ * @param {String} amountFrom Indictates a minimum amount for transactions to be displayed.
+ * @param {String} amountTo Indictates a maximum amount for transactions to be displayed.
+ * @param {String} name Indictates which transactions should be displayed (by name).
+ * @param {String} category Indictates which category should be displayed.
+ */
+function displayContent( displayType, budget, type, startDate, endDate, amountFrom, amountTo, name, category ) {
+    // Before doing anything, we check if the input is valid.
+    // Input invalid?
+    if ( !(checkAmountInput( amountFrom, true ) &amp;&amp; checkAmountInput( amountTo, true )) ) {
+        // Display an error message and stop executing this function.
+        $( "#mainContent" ).html( "&lt;center>&lt;i>" + getInvalidInputMessage() + "&lt;/i>&lt;/center>" );
+        return;
+    }
+    // Get all data before displaying anthing.
+    // Find out which data the user wants to see, then apply filter and display the chart.
+    var paramList = [];
+    if ( budget.length > 0 ) paramList.push( ["budget", budget] );
+    if ( type.length > 0 ) paramList.push( ["type", type] );
+    if ( name.length > 0 ) paramList.push( ["name", name] );
+    if ( category.length > 0 ) paramList.push( ["category", category] );
+    // Now, create a quest. If no parameter were selected, we get all data unfiltered.
+    var quest;
+    // At least one filter?
+    if ( paramList.length > 0 ) {
+        quest = { connector : "and", params : paramList };
+    }
+    // No filter?
+    else {
+        // No filters applied? Select all data.
+        quest = { connector : "or", params : [["type", "earning"], ["type", "spending"]] };
+    }
+    // Find out in which files we want to search.
+    var files = [];
+    // Date selected?
+    if ( startDate !== null &amp;&amp; endDate !== null ) {
+        // Get start and end date as a file name (reversed file name).
+        var startDateFileName = startDate.getFullYear() + "." + ((startDate.getMonth() + 1) &lt; 10 ? "0" + (startDate.getMonth() + 1) : (startDate.getMonth() + 1));
+        var endDateFileName = endDate.getFullYear() + "." + ((endDate.getMonth() + 1) &lt; 10 ? "0" + (endDate.getMonth() + 1) : (endDate.getMonth() + 1));
+        // For comparing, we need to reverse file names.
+        var allFiles = getJSONFiles();
+        for ( var i = 0; i &lt; allFiles.length; i++ ) {
+            // Reverse file name.
+            var tmp = allFiles[i].split( "." )[1] + "." + allFiles[i].split( "." )[0];
+            // Check if the file is in the given range (Note: This will only filter months and years).
+            if ( startDateFileName &lt;= tmp &amp;&amp; endDateFileName >= tmp ) {
+                files.push( allFiles[i] );
+            }
+        }
+    }
+    // No date filter? Apply the standard range (current month).
+    else {
+        // Returns the current file (without .json ending).
+        files.push( getCurrentFileName().substring( 0, getCurrentFileName().lastIndexOf( "." ) ) );
+    }
+    // Get all the matching data from every available file.
+    var data = [];
+    for ( var i = 0; i &lt; files.length; i++ ) {
+        // Append new data to the data we already found.
+        data = getData( files[i] + ".json", quest ).concat( data );
+    }
+    // Filter the data again.
+    var newData = [];
+    for ( var i = 0; i &lt; data.length; i++ ) {
+        // Amount not within the specified range? Continue without pushing the data.
+        // Minimum amount exists?
+        if ( amountFrom.length > 0 &amp;&amp; parseFloat( amountFrom ) > data[i].amount ) {
+            continue;
+        }
+        // Maximum amount exists?
+        if ( amountTo.length > 0 &amp;&amp; parseFloat( amountTo ) &lt; data[i].amount ) {
+            continue;
+        }
+        // Date not within the specified range? Continue without pushing the data.
+        // Start date exists?
+        if ( startDate !== null &amp;&amp; startDate.getMonth() === new Date( data[i].date * 1000 ).getMonth() ) {
+            if ( startDate.getDate() > new Date( data[i].date * 1000 ).getDate() ) {
+                continue;
+            }
+        }
+        // End date exists?
+        if ( endDate !== null &amp;&amp; endDate.getMonth() === new Date( data[i].date * 1000 ).getMonth() ) {
+            if ( endDate.getDate() &lt; new Date( data[i].date * 1000 ).getDate() ) {
+                continue;
+            }
+        }
+        // If we passed the filters above, we can push the data.
+        newData.push( data[i] );
+    }
+    // Save the filtered data.
+    data = newData;
+    // Data exists?
+    if ( data.length > 0 ) {
+        // Display the real content. Display a graph?
+        if ( displayType === "graph" ) {
+            displayGraph( data );
+        }
+        // Display a table?
+        else if ( displayType === "table" ) {
+            displayTable( data );
+        }
+    }
+    // No data found?
+    else {
+        // Display a message that no data was found.
+        $( "#mainContent" ).html( "&lt;center>&lt;i>" + getMissingTransactionsMessage() + "&lt;/i>&lt;/center>" );
+    }
+}
+
+function displayGraph( data ) {
+    // Create a canvas for our chart.
+    $( "#mainContent" ).html( "&lt;br>&lt;canvas id=\"graphCanvas\">&lt;/canvas>" );
+    var dataset = [], labels = [];
+    // Get the dataset (amounts) and labels (names).
+    for ( var i = 0; i &lt; data.length; i++ ) {
+        // Add the amount and name for our graph.
+        // Display the amount correctly.
+        var amount = data[i].amount;
+        if ( amount.toString().indexOf( "." ) !== -1 ) {
+            if ( amount.toString().split( "." )[1].length &lt; 2 ) amount += "0";
+        }
+        dataset.push( amount );
+        labels.push( data[i].name );
+    }
+    // Now we can display the graph.
+    createChart( $( "#graphCanvas" )[0], labels, dataset, colors, colors, readPreference( "chartType" ) );
+}
+
+function displayTable( data ) {
+    // Create the headings for the table.
+    var tableHeadingsText = getMainContentTableHeadings();
+    var tableHeadingsHTML = "";
+    for ( var i = 0; i &lt; tableHeadingsText.length; i++ ) {
+        tableHeadingsHTML += "&lt;td>&lt;b>" + tableHeadingsText[i] + "&lt;/b>&lt;/td>";
+    }
+    // Get the content for the table.
+    var tableContentHTML = "";
+    for ( var j = 0; j &lt; data.length; j++ ) {
+        // Display the amount correctly.
+        var amount = data[j].amount;
+        if ( amount.toString().indexOf( "." ) !== -1 ) {
+            if ( amount.toString().split( "." )[1].length &lt; 2 ) amount += "0";
+        }
+        // Add the data to our table.
+        tableContentHTML += "&lt;tr class=\"w3-hover-light-blue\">&lt;td>" + dateToString( data[j].date ) + "&lt;/td>" +
+                            "&lt;td>" + data[j].name + "&lt;/td>" +
+                            "&lt;td>" + amount + getCurrencySign() + "&lt;/td>" +
+                            "&lt;td>" + data[j].category + "&lt;/td>" +
+                            "&lt;td>" + data[j].budget + "&lt;/td>" +
+                            "&lt;td>" + getType( data[j].type ) + "&lt;/td>&lt;/tr>";
+    }
+    // Display the table containing the data.
+    $( "#mainContent" ).html( "&lt;br>&lt;table class=\"w3-table-all w3-round\">" +
+                              "&lt;tr>" + tableHeadingsHTML + "&lt;/tr>" +
+                              tableContentHTML + "&lt;/table>" );
+}
+
+/**
+ * This function changes the content of the transaction dialog dynamically.
+ */
+function updateTransactionDialog() {
+    // Earning selected?
+    if ( $( "#earning" )[0].checked ) {
+        // Allocation on?
+        if ( readMainStorage( "allocationOn" ) ) {
+            // Show the allocation option.
+            $( "#dynamicDiv1" ).show();
+            // If allocation is selected, don't show budget select.
+            if ( $( "#autoAllocation" )[0].checked ) {
+                $( "#dynamicDiv2" ).hide();
+            }
+            // Otherwise (manual budget select) show budget select.
+            else if ( $( "#manual" )[0].checked ) {
+                $( "#dynamicDiv2" ).show();
+            }
+        }
+        // Allocation is not activated.
+        else {
+            // Hide automatic allocation and show budget select.
+            $( "#dynamicDiv1" ).hide();
+            $( "#dynamicDiv2" ).show();
+        }
+    }
+    // Spending selected?
+    else if ( $( "#spending" )[0].checked ) {
+        // Hide automatic allocation and show budget select.
+        $( "#dynamicDiv1" ).hide();
+        $( "#dynamicDiv2" ).show();
+    }
+    // Check for automation.
+    // Automation activated:
+    if ( $( "#checkboxInput" )[0].checked ) {
+        $( "#dynamicDiv3" ).show();
+    }
+    // No automation activated:
+    else {
+        $( "#dynamicDiv3" ).hide();
+    }
+}
+
+/**
+ * This function displays the jQuery UI Datepicker.
+ * @param {String} number The number of the datepicker we want to display.
+ */
+function showDatepicker( number ) {
+    $( "#datepicker" + number ).datepicker({
+        dateFormat: "dd.mm.yy",
+        // Min date: tomorrow
+        minDate: (number === "2" ? new Date( (getCurrentDate() + 86400) * 1000 ) : null)
+    });
+    $( "#datepicker" + number ).datepicker("show");
+}
+
+/**
+ * This function updates the view when changes are made.
+ */
+function updateView() {
+    // Display a list of currently available budgets.
+    displayBudgets();
+    // Display the budgets in detail.
+    updateContent();
+    displayContentControls();
+    // Display a list of currently recurring transactions.
+    displayRecurringTransactions();
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#activateDateRangePicker">activateDateRangePicker</a></li><li><a href="global.html#addBudget">addBudget</a></li><li><a href="global.html#addEarning">addEarning</a></li><li><a href="global.html#addRecurringTransaction">addRecurringTransaction</a></li><li><a href="global.html#addSpending">addSpending</a></li><li><a href="global.html#addTransaction">addTransaction</a></li><li><a href="global.html#addTransfer">addTransfer</a></li><li><a href="global.html#checkAmountInput">checkAmountInput</a></li><li><a href="global.html#createChart">createChart</a></li><li><a href="global.html#createDialog">createDialog</a></li><li><a href="global.html#createPath">createPath</a></li><li><a href="global.html#dateToString">dateToString</a></li><li><a href="global.html#deleteBudget">deleteBudget</a></li><li><a href="global.html#deleteRecurringTransaction">deleteRecurringTransaction</a></li><li><a href="global.html#displayBalances">displayBalances</a></li><li><a href="global.html#displayBudgets">displayBudgets</a></li><li><a href="global.html#displayChart">displayChart</a></li><li><a href="global.html#displayChartType">displayChartType</a></li><li><a href="global.html#displayContent">displayContent</a></li><li><a href="global.html#displayContentControls">displayContentControls</a></li><li><a href="global.html#displayRecentTransactions">displayRecentTransactions</a></li><li><a href="global.html#displayRecurringTransactions">displayRecurringTransactions</a></li><li><a href="global.html#executeRecurringTransactions">executeRecurringTransactions</a></li><li><a href="global.html#executeTransfer">executeTransfer</a></li><li><a href="global.html#getAddBudgetDialogText">getAddBudgetDialogText</a></li><li><a href="global.html#getAddBudgetDialogTitle">getAddBudgetDialogTitle</a></li><li><a href="global.html#getAllTimeTransactionsMissingDataMessage">getAllTimeTransactionsMissingDataMessage</a></li><li><a href="global.html#getAllTimeTransactionsText">getAllTimeTransactionsText</a></li><li><a href="global.html#getCancelButtonText">getCancelButtonText</a></li><li><a href="global.html#getConfirmButtonText">getConfirmButtonText</a></li><li><a href="global.html#getCurrencySign">getCurrencySign</a></li><li><a href="global.html#getCurrentBudgetsHeadings">getCurrentBudgetsHeadings</a></li><li><a href="global.html#getCurrentDate">getCurrentDate</a></li><li><a href="global.html#getCurrentFileName">getCurrentFileName</a></li><li><a href="global.html#getData">getData</a></li><li><a href="global.html#getDeleteBudgetDialogText">getDeleteBudgetDialogText</a></li><li><a href="global.html#getDeleteBudgetDialogTitle">getDeleteBudgetDialogTitle</a></li><li><a href="global.html#getDisplayTypeTextElements">getDisplayTypeTextElements</a></li><li><a href="global.html#getIntervalOptionsTextElements">getIntervalOptionsTextElements</a></li><li><a href="global.html#getInvalidInputMessage">getInvalidInputMessage</a></li><li><a href="global.html#getJSONFiles">getJSONFiles</a></li><li><a href="global.html#getLanguage">getLanguage</a></li><li><a href="global.html#getMainContentFilterText">getMainContentFilterText</a></li><li><a href="global.html#getMainContentStartButtonText">getMainContentStartButtonText</a></li><li><a href="global.html#getMainContentTableHeadings">getMainContentTableHeadings</a></li><li><a href="global.html#getMissingTransactionsMessage">getMissingTransactionsMessage</a></li><li><a href="global.html#getNewDate">getNewDate</a></li><li><a href="global.html#getRangeDatePickerApplyButtonText">getRangeDatePickerApplyButtonText</a></li><li><a href="global.html#getRangeDatePickerCancelButtonText">getRangeDatePickerCancelButtonText</a></li><li><a href="global.html#getRangeDatePickerClearButtonText">getRangeDatePickerClearButtonText</a></li><li><a href="global.html#getRangeDatePickerPresetRangesTextElements">getRangeDatePickerPresetRangesTextElements</a></li><li><a href="global.html#getRecentTransactions">getRecentTransactions</a></li><li><a href="global.html#getRecentTransactionsHeading">getRecentTransactionsHeading</a></li><li><a href="global.html#getRecentTransactionsMissingDataMessage">getRecentTransactionsMissingDataMessage</a></li><li><a href="global.html#getRecurringTransactionsContent">getRecurringTransactionsContent</a></li><li><a href="global.html#getRecurringTransactionsHeadings">getRecurringTransactionsHeadings</a></li><li><a href="global.html#getRenameBudgetDialogText">getRenameBudgetDialogText</a></li><li><a href="global.html#getRenameBudgetDialogTitle">getRenameBudgetDialogTitle</a></li><li><a href="global.html#getSetAllocationDialogTextElements">getSetAllocationDialogTextElements</a></li><li><a href="global.html#getSetAllocationDialogTitle">getSetAllocationDialogTitle</a></li><li><a href="global.html#getTransactionDialogTextElements">getTransactionDialogTextElements</a></li><li><a href="global.html#getTransactionDialogTitle">getTransactionDialogTitle</a></li><li><a href="global.html#getTransferDialogTextElements">getTransferDialogTextElements</a></li><li><a href="global.html#getTransferDialogTitle">getTransferDialogTitle</a></li><li><a href="global.html#getType">getType</a></li><li><a href="global.html#initStorage">initStorage</a></li><li><a href="global.html#loadPage">loadPage</a></li><li><a href="global.html#moveFiles">moveFiles</a></li><li><a href="global.html#readMainStorage">readMainStorage</a></li><li><a href="global.html#readPreference">readPreference</a></li><li><a href="global.html#renameBudget">renameBudget</a></li><li><a href="global.html#replaceData">replaceData</a></li><li><a href="global.html#setAllocation">setAllocation</a></li><li><a href="global.html#setAllocationOn">setAllocationOn</a></li><li><a href="global.html#setChartType">setChartType</a></li><li><a href="global.html#setCurrency">setCurrency</a></li><li><a href="global.html#setLanguage">setLanguage</a></li><li><a href="global.html#setPath">setPath</a></li><li><a href="global.html#setWindowMode">setWindowMode</a></li><li><a href="global.html#setWindowSize">setWindowSize</a></li><li><a href="global.html#showDatepicker">showDatepicker</a></li><li><a href="global.html#sortData">sortData</a></li><li><a href="global.html#storeData">storeData</a></li><li><a href="global.html#storePreference">storePreference</a></li><li><a href="global.html#updateContent">updateContent</a></li><li><a href="global.html#updatePaths">updatePaths</a></li><li><a href="global.html#updateTransactionDialog">updateTransactionDialog</a></li><li><a href="global.html#updateView">updateView</a></li><li><a href="global.html#writeMainStorage">writeMainStorage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Sep 02 2018 13:46:47 GMT+0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
